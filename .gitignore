@@ -1,0 +1,4 @@
+extlib
+*~
+*.pyc
+lib/*.pyc
