@@ -33,8 +33,7 @@ def add_item_to_host(server, username, password, log_level,
   version = zapi.apiinfo.version({})
 
   host_id = zapi.host.get({'filter': {'host': host}})[0]['hostid']
-
-  duplicates = zapi.item.get({'filter': {'key_': key}})
+  duplicates = zapi.item.get({'filter': {'key_': key, 'host': host}})
   if len(duplicates) > 0:
     if remove_duplicate:
       print('Key "{}" already exists({}).'.format(key, duplicates))
@@ -109,7 +108,7 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description=('Add an example item to '
                                                 'a given host.'))
   config.add_argparse_configs(parser)
-  parser.add_argument('host', help='hostname for the example item)')
+  parser.add_argument('host', help='hostname for the example item')
   parser.add_argument('--remove-duplicate', '-r', action='store_true',
                       help=('Remove duplicates when found, '
                             'instead of letting this app exit itself.'))
