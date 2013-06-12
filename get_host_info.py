@@ -30,7 +30,11 @@ def get_host_info(server, username, password, log_level):
   hostid = responses[0]['hostid']
   items = zapi.item.get({'hostids': hostid, 'output': 'extend'})
   for item in items:
-    print('"{}"(id: {}):'.format(item['name'], item['itemid']))
+    if 'name' in item: # 2.0
+      print('"{}" (id: {}):'.format(item['name'], item['itemid']))
+    else: # 1.8
+      print('"{}" (id: {}):'.format(item['description'], item['itemid']))
+      pass
     pprint.pprint(item)
     pass
   pass
