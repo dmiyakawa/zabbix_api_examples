@@ -13,22 +13,22 @@ import re
 import time
 import pyzabbix
 
-
-r_period = re.compile(r'(\d+)((?:h(?:ours?)?)|(?:m(?:mins?)?))')
+# 10h, 10hour, 10hours, 20m, 20min, 20mins, 30s, 30sec, 30secs
+r_period = re.compile(r'(\d+)((?:h(?:ours?)?)|(?:m(?:mins?)?)|(?:s(?:ecs?)?))')
 
 def main():
     parser = argparse.ArgumentParser(
         description=('Start maintenance right now'))
     parser.add_argument('hostname', action='store')
     parser.add_argument('-d', '--delete-existing', action='store_true',
-                        help=('Remove existing maintenance with same name'
-                              ' if exists.'))
-    parser.add_argument('--user', action='store', default='zabbixapi')
-    parser.add_argument('--password', action='store')
+                        help=('Remove an existing maintenance with same name.'))
+    parser.add_argument('--user', action='store', default='admin')
+    parser.add_argument('--password', action='store',
+                        help='Specify password if you really want.')
     parser.add_argument('--name', action='store', default='Shot maintenance',
-                        help='Name of the maintanance stored in Zabbix')
+                        help='Maintanance name')
     parser.add_argument('--period', action='store',
-                        default='2h',
+                        default='1h',
                         help=('How long the maintenance should be.'
                               'Seconds or something like "2h" / "30m".'
                               'No complicated values will be accepted :-)'))
@@ -60,17 +60,16 @@ def main():
     else:
         m_period = r_period.match(args.period)
         if m_period:
-            mul = {'m': 60, 'h': 60*60}[m_period.group(2)[0]]
+            mul = {'s': 1, 'm': 60, 'h': 60*60}[m_period.group(2)[0]]
             period = int(m_period.group(1)) * mul
         else:
             logger.error('Failed to parse {}'.format(args.period))
             return
-            
+
     logger.debug('Connecting to Zabbix host "{}" with user {}'
                  .format(args.hostname, args.user))
     zapi = pyzabbix.ZabbixAPI(args.hostname)
     zapi.login(args.user, password)
-
     logger.debug('Zabbix version: {}'.format(zapi.api_version()))
 
     filtered = zapi.maintenance.get(filter={'name': args.name})
